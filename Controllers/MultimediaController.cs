@@ -89,6 +89,9 @@ namespace multimedia_storage.Controllers
                 if (file != null)
                 {
 
+                    var storageFolder = Path.Combine(_environment.ContentRootPath, "storage");
+                    Directory.CreateDirectory(storageFolder);
+
                     var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
@@ -140,6 +143,9 @@ namespace multimedia_storage.Controllers
 
                     if (multimedia != null)
                     {
+
+                        var storageFolder = Path.Combine(_environment.ContentRootPath, "storage");
+                        Directory.CreateDirectory(storageFolder);
 
                         var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
                         using (var stream = new FileStream(filePath, FileMode.Create))
