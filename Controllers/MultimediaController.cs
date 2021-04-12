@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Linq;
 using multimedia_storage.Context;
@@ -16,10 +17,12 @@ namespace multimedia_storage.Controllers
     {
 
         public readonly AppDbContext context;
+        private readonly IWebHostEnvironment _environment;
 
-        public MultimediaController(AppDbContext context)
+        public MultimediaController(AppDbContext context, IWebHostEnvironment env)
         {
             this.context = context;
+            _environment = env;
         }
 
         // GET: <MultimediasController>
@@ -86,7 +89,7 @@ namespace multimedia_storage.Controllers
                 if (file != null)
                 {
 
-                    var filePath = "C:\\Users\\Leron\\Documents\\source\\vanta_multimedia_storage\\storage\\" + file.FileName;
+                    var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         file.CopyTo(stream);
@@ -138,7 +141,7 @@ namespace multimedia_storage.Controllers
                     if (multimedia != null)
                     {
 
-                        var filePath = "C:\\Users\\Leron\\Documents\\source\\vanta_multimedia_storage\\storage\\" + file.FileName;
+                        var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             file.CopyTo(stream);
