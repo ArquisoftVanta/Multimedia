@@ -61,6 +61,10 @@ namespace multimedia_storage.Controllers
         {
             try
             {
+                
+                if(id <= 0){
+                    return BadRequest();
+                }
 
                 var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
 
@@ -159,6 +163,10 @@ namespace multimedia_storage.Controllers
                 if (file != null)
                 {
 
+                    if(id <= 0){
+                        return BadRequest();
+                    }
+
                     var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
 
                     if (multimedia != null)
@@ -224,6 +232,10 @@ namespace multimedia_storage.Controllers
 
             try
             {
+
+                if(id <= 0){
+                    return BadRequest();
+                }
 
                 var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
 
