@@ -144,6 +144,12 @@ namespace multimedia_storage.Controllers
                     if (multimedia != null)
                     {
 
+                        var multimediaPath = multimedia.location;
+                        
+                        if(System.IO.File.Exists(multimediaPath)){
+                            System.IO.File.Delete(multimediaPath);
+                        }
+
                         var storageFolder = Path.Combine(_environment.ContentRootPath, "storage");
                         Directory.CreateDirectory(storageFolder);
 
@@ -200,6 +206,13 @@ namespace multimedia_storage.Controllers
 
                 if (multimedia != null)
                 {
+
+                    var multimediaPath = multimedia.location;
+                        
+                    if(System.IO.File.Exists(multimediaPath)){
+                        System.IO.File.Delete(multimediaPath);
+                    }
+
                     context.multimedias.Remove(multimedia);
                     context.SaveChanges();
                     return Ok(id);
