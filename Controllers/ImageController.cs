@@ -30,7 +30,10 @@ namespace multimedia_storage.Controllers
         /// Get a image file
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>A existly image file</returns>
+        /// <response code="200">Returns the existly image file</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the image file is null</response>
         [HttpGet("{id}", Name = "GetImage")]
         public ActionResult Get(int id)
         {
