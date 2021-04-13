@@ -29,7 +29,10 @@ namespace multimedia_storage.Controllers
         /// <summary>
         /// Gets all multimedia files 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>All existly multimedia files</returns>
+        /// <response code="200">Returns all existly multimedia files</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the multimedia files is null</response>
         [HttpGet]
         public ActionResult Get()
         {
@@ -49,7 +52,10 @@ namespace multimedia_storage.Controllers
         /// Get a multimedia file
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>A existly multimedia file</returns>
+        /// <response code="200">Returns the existly multimedia file</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the multimedia file is null</response>
         [HttpGet("{id}", Name = "GetMultimedia")]
         public ActionResult Get(int id)
         {
@@ -78,8 +84,19 @@ namespace multimedia_storage.Controllers
         /// <summary>
         /// Create a new multimedia file
         /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        /// POST /Todo
+        ///     {
+        ///        "file": "select_file"
+        ///     }
+        /// </remarks>
         /// <param name="file"></param>
         /// <returns></returns>
+        /// <response code="200">Returns the newly created multimedia file</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the multimedia file is null</response>
         [HttpPost]
         public ActionResult Post([FromForm] IFormFile file)
         {
@@ -128,7 +145,10 @@ namespace multimedia_storage.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <param name="file"></param>
-        /// <returns></returns>
+        /// <returns>A modified multimedia file</returns>
+        /// <response code="200">Returns the modified multimedia file</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the multimedia file is null</response>
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromForm] IFormFile file)
         {
@@ -194,7 +214,10 @@ namespace multimedia_storage.Controllers
         /// Removes a multimedia file
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>A multimedia file</returns>
+        /// <response code="200">Returns multimedia file id</response>
+        /// <response code="400">If the request is bad structured</response>
+        /// <response code="404">If the multimedia file is null</response> 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
