@@ -112,10 +112,12 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response>
         [HttpPost]
-        public ActionResult Post([FromForm] IFormFile file)
+        public async Task<IActionResult> Index([FromForm] IFormFile file)
         {
             try
             {
+                
+                FileStream fileStream;
 
                 if (file != null)
                 {
@@ -128,6 +130,9 @@ namespace multimedia_storage.Controllers
                     {
                         file.CopyTo(stream);
                     }
+
+                    fileStream = new FileStream(filePath, FileMode.Open);
+
                     double size = file.Length;
                     size = size / 1000000;
                     size = Math.Round(size, 2);
@@ -135,7 +140,32 @@ namespace multimedia_storage.Controllers
                     multimedia.name = Path.GetFileNameWithoutExtension(file.FileName);
                     multimedia.extension = Path.GetExtension(file.FileName).Substring(1);
                     multimedia.size = size;
-                    multimedia.location = filePath;
+
+                    // Firebase authentication
+                    var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
+                    var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+
+                    var cancellation = new CancellationTokenSource();
+
+                    var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
+                        AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                        ThrowOnCancel = true
+                    })
+                    .Child("storage")
+                    .Child($"{multimedia.name}.{multimedia.extension}")
+                    .PutAsync(fileStream, cancellation.Token);
+
+                    var fileUrl = "";
+
+                    try{
+
+                        fileUrl = await uploadFirebase;
+
+                    }catch(Exception ex){
+                        return BadRequest(ex.Message);
+                    }
+
+                    multimedia.location = fileUrl;
 
                     context.multimedias.Add(multimedia);
                     context.SaveChanges();
@@ -164,11 +194,13 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response>
         [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromForm] IFormFile file)
+        public async Task<IActionResult> Index(int id, [FromForm] IFormFile file)
         {
 
             try
             {
+
+                FileStream fileStream;
 
                 if (file != null)
                 {
@@ -196,13 +228,41 @@ namespace multimedia_storage.Controllers
                         {
                             file.CopyTo(stream);
                         }
+
+                        fileStream = new FileStream(filePath, FileMode.Open);
+
                         double size = file.Length;
                         size = size / 1000000;
                         size = Math.Round(size, 2);
                         multimedia.name = Path.GetFileNameWithoutExtension(file.FileName);
                         multimedia.extension = Path.GetExtension(file.FileName).Substring(1);
                         multimedia.size = size;
-                        multimedia.location = filePath;
+                        
+                        // Firebase authentication
+                        var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
+                        var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+
+                        var cancellation = new CancellationTokenSource();
+
+                        var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
+                            AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                            ThrowOnCancel = true
+                        })
+                        .Child("storage")
+                        .Child($"{multimedia.name}.{multimedia.extension}")
+                        .PutAsync(fileStream, cancellation.Token);
+
+                        var fileUrl = "";
+
+                        try{
+
+                            fileUrl = await uploadFirebase;
+
+                        }catch(Exception ex){
+                            return BadRequest(ex.Message);
+                        }
+
+                        multimedia.location = fileUrl;
 
                         context.Entry(multimedia).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         context.SaveChanges();
