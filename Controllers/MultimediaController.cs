@@ -143,12 +143,12 @@ namespace multimedia_storage.Controllers
 
                     // Firebase authentication
                     var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                    var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+                    var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
 
                     var cancellation = new CancellationTokenSource();
 
                     var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                        AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                        AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
                         ThrowOnCancel = true
                     })
                     .Child("storage")
@@ -240,12 +240,12 @@ namespace multimedia_storage.Controllers
                         
                         // Firebase authentication
                         var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                        var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+                        var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
 
                         var cancellation = new CancellationTokenSource();
 
                         var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                            AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                            AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
                             ThrowOnCancel = true
                         })
                         .Child("storage")
@@ -297,7 +297,7 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response> 
         [HttpDelete("{id}")]
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Index(int id)
         {
 
             try
@@ -317,6 +317,22 @@ namespace multimedia_storage.Controllers
                     if(System.IO.File.Exists(multimediaPath)){
                         System.IO.File.Delete(multimediaPath);
                     }
+
+                    // Firebase authentication
+                    var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
+                    var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+
+                    var storage = new FirebaseStorage(Bucket);
+
+                    var cancellation = new CancellationTokenSource();
+
+                    var firebaseStorage = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
+                            AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
+                            ThrowOnCancel = true
+                        })
+                        .Child("storage")
+                        .Child($"{multimedia.name}.{multimedia.extension}")
+                        .DeleteAsync();
 
                     context.multimedias.Remove(multimedia);
                     context.SaveChanges();
