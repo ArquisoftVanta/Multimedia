@@ -6,6 +6,10 @@ using multimedia_storage.Context;
 using multimedia_storage.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Firebase.Storage;
+using Firebase.Auth;
+using System.Threading.Tasks;
+using System.Threading;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
