@@ -214,7 +214,7 @@ namespace multimedia_storage.Controllers
                     if (multimedia != null)
                     {
 
-                        var multimediaPath = multimedia.location;
+                        var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
                         
                         if(System.IO.File.Exists(multimediaPath)){
                             System.IO.File.Delete(multimediaPath);
@@ -312,7 +312,7 @@ namespace multimedia_storage.Controllers
                 if (multimedia != null)
                 {
 
-                    var multimediaPath = multimedia.location;
+                    var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
                         
                     if(System.IO.File.Exists(multimediaPath)){
                         System.IO.File.Delete(multimediaPath);
@@ -327,12 +327,12 @@ namespace multimedia_storage.Controllers
                     var cancellation = new CancellationTokenSource();
 
                     var firebaseStorage = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                            AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
-                            ThrowOnCancel = true
-                        })
-                        .Child("storage")
-                        .Child($"{multimedia.name}.{multimedia.extension}")
-                        .DeleteAsync();
+                        AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
+                        ThrowOnCancel = true
+                    })
+                    .Child("storage")
+                    .Child($"{multimedia.name}.{multimedia.extension}")
+                    .DeleteAsync();
 
                     context.multimedias.Remove(multimedia);
                     context.SaveChanges();
