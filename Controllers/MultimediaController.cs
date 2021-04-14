@@ -320,7 +320,7 @@ namespace multimedia_storage.Controllers
 
                     context.multimedias.Remove(multimedia);
                     context.SaveChanges();
-                    return Ok(id);
+                    return Ok(multimedia);
                 }
                 else
                 {
