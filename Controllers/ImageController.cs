@@ -49,7 +49,7 @@ namespace multimedia_storage.Controllers
                 if (multimedia != null)
                 {
 
-                    var multimediaPath = multimedia.location;
+                    var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
                     if(System.IO.File.Exists(multimediaPath)){
 
                         var fileBytes = System.IO.File.ReadAllBytes(multimediaPath);
