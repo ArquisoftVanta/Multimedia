@@ -23,6 +23,12 @@ namespace multimedia_storage.Controllers
         public readonly AppDbContext context;
         private readonly IWebHostEnvironment _environment;
 
+        // Configure Firebase
+        private static string apiKey = "AIzaSyCCQVALEPSDGxNh22RB3aCVvq0NtMtJxtc";
+        private static string Bucket = "vanta-multimedia.appspot.com";
+        private static string AuthEmail = "sebasduca@gmail.com";
+        private static string AuthPassword = "lerona";
+
         public MultimediaController(AppDbContext context, IWebHostEnvironment env)
         {
             this.context = context;
