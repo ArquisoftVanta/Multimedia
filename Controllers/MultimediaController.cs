@@ -141,31 +141,37 @@ namespace multimedia_storage.Controllers
                     multimedia.extension = Path.GetExtension(file.FileName).Substring(1);
                     multimedia.size = size;
 
-                    // Firebase authentication
-                    var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                    var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+                    // // Firebase authentication
+                    // var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
+                    // var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
 
-                    var cancellation = new CancellationTokenSource();
+                    // var cancellation = new CancellationTokenSource();
 
-                    var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                        AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
-                        ThrowOnCancel = true
-                    })
-                    .Child("storage")
-                    .Child($"{multimedia.name}.{multimedia.extension}")
-                    .PutAsync(fileStream, cancellation.Token);
+                    // var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
+                    //     AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
+                    //     ThrowOnCancel = true
+                    // })
+                    // .Child("storage")
+                    // .Child($"{multimedia.name}.{multimedia.extension}")
+                    // .PutAsync(fileStream, cancellation.Token);
 
-                    var fileUrl = "";
+                    // var fileUrl = "";
 
-                    try{
+                    // try{
 
-                        fileUrl = await uploadFirebase;
+                    //     fileUrl = await uploadFirebase;
 
-                    }catch(Exception ex){
-                        return BadRequest(ex.Message);
-                    }
+                    // }catch(Exception ex){
+                    //     return BadRequest(ex.Message);
+                    // }
 
-                    multimedia.location = fileUrl;
+                    // multimedia.location = fileUrl;
+                    multimedia.location = filePath;
+
+                    var fileBytes = System.IO.File.ReadAllBytes(filePath);
+                    var fileMemStream = new MemoryStream(fileBytes);
+
+                    multimedia.image = fileMemStream.ToArray();
 
                     context.multimedias.Add(multimedia);
                     context.SaveChanges();
