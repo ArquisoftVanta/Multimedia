@@ -10,7 +10,7 @@ namespace multimedia_storage.Models
         public string extension { get; set; }
         public double size { get; set; }
         public string location { get; set; }
-        public byte[] image { get; set; }
+        public string image { get; set; }
 
     }
 }
