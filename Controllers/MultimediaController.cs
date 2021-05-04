@@ -6,10 +6,6 @@ using multimedia_storage.Context;
 using multimedia_storage.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
-using Firebase.Storage;
-using Firebase.Auth;
-using System.Threading.Tasks;
-using System.Threading;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,19 +15,11 @@ namespace multimedia_storage.Controllers
     [ApiController]
     public class MultimediaController : ControllerBase
     {
-
-        public readonly AppDbContext context;
+        public readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
-
-        // Configure Firebase
-        private static string apiKey = "AIzaSyCCQVALEPSDGxNh22RB3aCVvq0NtMtJxtc";
-        private static string Bucket = "vanta-multimedia.appspot.com";
-        private static string AuthEmail = "sebasduca@gmail.com";
-        private static string AuthPassword = "lerona";
-
-        public MultimediaController(AppDbContext context, IWebHostEnvironment env)
+        public MultimediaController(AppDbContext _context, IWebHostEnvironment env)
         {
-            this.context = context;
+            this._context = _context;
             _environment = env;
         }
 
@@ -48,7 +36,7 @@ namespace multimedia_storage.Controllers
         {
             try
             {
-                return Ok(context.multimedias.ToList());
+                return Ok(_context.multimedias.ToList());
 
             }
             catch (Exception ex)
@@ -71,12 +59,13 @@ namespace multimedia_storage.Controllers
         {
             try
             {
-                
-                if(id <= 0){
+
+                if (id <= 0)
+                {
                     return BadRequest();
                 }
 
-                var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
+                var multimedia = _context.multimedias.FirstOrDefault(m => m.id == id);
 
                 if (multimedia != null)
                 {
@@ -112,12 +101,13 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response>
         [HttpPost]
-        public async Task<IActionResult> Index([FromForm] IFormFile file)
+        public ActionResult Post([FromForm] IFormFile file)
         {
+
             try
             {
-                
-                FileStream fileStream;
+
+                string base64Text;
 
                 if (file != null)
                 {
@@ -125,56 +115,36 @@ namespace multimedia_storage.Controllers
                     var storageFolder = Path.Combine(_environment.ContentRootPath, "storage");
                     Directory.CreateDirectory(storageFolder);
 
-                    var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    var filePath = Path.Combine(_environment.ContentRootPath, "storage", file.FileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
-                        file.CopyTo(stream);
+                        file.CopyTo(fileStream);
+                        fileStream.Close();
+                        fileStream.Dispose();
                     }
 
-                    fileStream = new FileStream(filePath, FileMode.Open);
+                    using (var fileMemStream = new MemoryStream())
+                    {
+                        file.CopyTo(fileMemStream);
+                        var fileBytes = fileMemStream.ToArray();
+                        base64Text = Convert.ToBase64String(fileBytes);
+                        fileMemStream.Close();
+                        fileMemStream.Dispose();
+                    }
 
                     double size = file.Length;
-                    size = size / 1000000;
                     size = Math.Round(size, 2);
+
                     Multimedia multimedia = new Multimedia();
                     multimedia.name = Path.GetFileNameWithoutExtension(file.FileName);
                     multimedia.extension = Path.GetExtension(file.FileName).Substring(1);
                     multimedia.size = size;
-
-                    // // Firebase authentication
-                    // var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                    // var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
-
-                    // var cancellation = new CancellationTokenSource();
-
-                    // var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                    //     AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
-                    //     ThrowOnCancel = true
-                    // })
-                    // .Child("storage")
-                    // .Child($"{multimedia.name}.{multimedia.extension}")
-                    // .PutAsync(fileStream, cancellation.Token);
-
-                    // var fileUrl = "";
-
-                    // try{
-
-                    //     fileUrl = await uploadFirebase;
-
-                    // }catch(Exception ex){
-                    //     return BadRequest(ex.Message);
-                    // }
-
-                    // multimedia.location = fileUrl;
                     multimedia.location = filePath;
+                    multimedia.image = base64Text;
 
-                    var fileBytes = System.IO.File.ReadAllBytes(filePath);
-                    var fileMemStream = new MemoryStream(fileBytes);
-
-                    multimedia.image = fileMemStream.ToArray();
-
-                    context.multimedias.Add(multimedia);
-                    context.SaveChanges();
+                    _context.multimedias.Add(multimedia);
+                    _context.SaveChanges();
                     return CreatedAtRoute("GetMultimedia", new { id = multimedia.id }, multimedia);
                 }
                 else
@@ -200,42 +170,54 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Index(int id, [FromForm] IFormFile file)
+        public ActionResult Put(int id, [FromForm] IFormFile file)
         {
 
             try
             {
 
-                FileStream fileStream;
+                string base64Text;
 
                 if (file != null)
                 {
 
-                    if(id <= 0){
+                    if (id <= 0)
+                    {
                         return BadRequest();
                     }
 
-                    var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
+                    var multimedia = _context.multimedias.FirstOrDefault(m => m.id == id);
 
                     if (multimedia != null)
                     {
 
-                        var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
-                        
-                        if(System.IO.File.Exists(multimediaPath)){
+                        var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage", multimedia.name + "." + multimedia.extension);
+
+                        if (System.IO.File.Exists(multimediaPath))
+                        {
                             System.IO.File.Delete(multimediaPath);
                         }
 
                         var storageFolder = Path.Combine(_environment.ContentRootPath, "storage");
                         Directory.CreateDirectory(storageFolder);
 
-                        var filePath = Path.Combine(_environment.ContentRootPath,"storage",file.FileName);
-                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        var filePath = Path.Combine(_environment.ContentRootPath, "storage", file.FileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
-                            file.CopyTo(stream);
+                            file.CopyTo(fileStream);
+                            fileStream.Close();
+                            fileStream.Dispose();
                         }
 
-                        fileStream = new FileStream(filePath, FileMode.Open);
+                        using (var fileMemStream = new MemoryStream())
+                        {
+                            file.CopyTo(fileMemStream);
+                            var fileBytes = fileMemStream.ToArray();
+                            base64Text = Convert.ToBase64String(fileBytes);
+                            fileMemStream.Close();
+                            fileMemStream.Dispose();
+                        }
 
                         double size = file.Length;
                         size = size / 1000000;
@@ -243,35 +225,11 @@ namespace multimedia_storage.Controllers
                         multimedia.name = Path.GetFileNameWithoutExtension(file.FileName);
                         multimedia.extension = Path.GetExtension(file.FileName).Substring(1);
                         multimedia.size = size;
-                        
-                        // Firebase authentication
-                        var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                        var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+                        multimedia.location = filePath;
+                        multimedia.image = base64Text;
 
-                        var cancellation = new CancellationTokenSource();
-
-                        var uploadFirebase = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                            AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
-                            ThrowOnCancel = true
-                        })
-                        .Child("storage")
-                        .Child($"{multimedia.name}.{multimedia.extension}")
-                        .PutAsync(fileStream, cancellation.Token);
-
-                        var fileUrl = "";
-
-                        try{
-
-                            fileUrl = await uploadFirebase;
-
-                        }catch(Exception ex){
-                            return BadRequest(ex.Message);
-                        }
-
-                        multimedia.location = fileUrl;
-
-                        context.Entry(multimedia).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                        context.SaveChanges();
+                        _context.Entry(multimedia).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        _context.SaveChanges();
                         return CreatedAtRoute("GetMultimedia", new { id = multimedia.id }, multimedia);
                     }
                     else
@@ -303,45 +261,31 @@ namespace multimedia_storage.Controllers
         /// <response code="400">If the request is bad structured</response>
         /// <response code="404">If the multimedia file is null</response> 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Index(int id)
+        public ActionResult Delete(int id)
         {
 
             try
             {
 
-                if(id <= 0){
+                if (id <= 0)
+                {
                     return BadRequest();
                 }
 
-                var multimedia = context.multimedias.FirstOrDefault(m => m.id == id);
+                var multimedia = _context.multimedias.FirstOrDefault(m => m.id == id);
 
                 if (multimedia != null)
                 {
 
-                    var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
-                        
-                    if(System.IO.File.Exists(multimediaPath)){
+                    var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage", multimedia.name + "." + multimedia.extension);
+
+                    if (System.IO.File.Exists(multimediaPath))
+                    {
                         System.IO.File.Delete(multimediaPath);
                     }
 
-                    // Firebase authentication
-                    var auth = new FirebaseAuthProvider(new FirebaseConfig(apiKey));
-                    var token = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
-
-                    var storage = new FirebaseStorage(Bucket);
-
-                    var cancellation = new CancellationTokenSource();
-
-                    var firebaseStorage = new FirebaseStorage(Bucket, new FirebaseStorageOptions{
-                        AuthTokenAsyncFactory = () => Task.FromResult(token.FirebaseToken),
-                        ThrowOnCancel = true
-                    })
-                    .Child("storage")
-                    .Child($"{multimedia.name}.{multimedia.extension}")
-                    .DeleteAsync();
-
-                    context.multimedias.Remove(multimedia);
-                    context.SaveChanges();
+                    _context.multimedias.Remove(multimedia);
+                    _context.SaveChanges();
                     return Ok(multimedia);
                 }
                 else
