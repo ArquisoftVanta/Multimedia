@@ -52,8 +52,7 @@ namespace multimedia_storage.Controllers
                     var multimediaPath = Path.Combine(_environment.ContentRootPath, "storage",multimedia.name + "." + multimedia.extension);
                     if(System.IO.File.Exists(multimediaPath)){
 
-                        var fileBytes = System.IO.File.ReadAllBytes(multimediaPath);
-
+                        var fileBytes = Convert.FromBase64String(multimedia.image);
                         var fileMemStream = new MemoryStream(fileBytes);
 
                         return Ok(fileMemStream);
